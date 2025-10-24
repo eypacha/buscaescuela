@@ -26,32 +26,39 @@ def main():
     page.click('button.btn.btn-lg.btn-primary.btn-block.mt-5')
     page.wait_for_selector('.listado a')
 
-    primer_href = page.get_attribute('.listado a', 'href')
-    print(f"[green]{'URL:':<{LABEL_WIDTH}}[/green]{primer_href}")
 
-    if primer_href:
-        if not primer_href.startswith('http'):
-            next_url = urljoin(url, primer_href)
-        else:
-            next_url = primer_href
-        page.goto(next_url, timeout=60000)
+    # Procesar los dos primeros enlaces de la lista
+    for i in range(2):
+        selector = f'.listado a:nth-of-type({i+1})'
+        href = page.get_attribute(selector, 'href')
+        print(f"[green]{'URL:':<{LABEL_WIDTH}}[/green]{href}")
 
-        primer_h2 = ''
-        try:
-            primer_h2 = page.inner_text('h2')
-            print(f"[bold magenta]{'Nombre:':<{LABEL_WIDTH}}[/bold magenta] {primer_h2}")
-        except Exception as e:
-            print(f"[red]No se encontró ningún h2:[/red] {e}")
+        if href:
+            if not href.startswith('http'):
+                next_url = urljoin(url, href)
+            else:
+                next_url = href
+            page.goto(next_url, timeout=60000)
 
-        page_content = page.content()
-        primer_mail = extract_email(page_content)
-        if primer_mail:
-            print(f"[bold blue]{'Mail:':<{LABEL_WIDTH}}[/bold blue] {primer_mail}")
-        else:
-            print("[red]No se encontró ningún mail en la página.[/red]")
+            nombre = ''
+            try:
+                nombre = page.inner_text('h2')
+                print(f"[bold magenta]{'Nombre:':<{LABEL_WIDTH}}[/bold magenta] {nombre}")
+            except Exception as e:
+                print(f"[red]No se encontró ningún h2:[/red] {e}")
 
-        with open('escuelas.csv', 'a', encoding='utf-8') as f:
-            f.write(f'{primer_h2},{primer_mail}\n')
+            page_content = page.content()
+            mail = extract_email(page_content)
+            if mail:
+                print(f"[bold blue]{'Mail:':<{LABEL_WIDTH}}[/bold blue] {mail}")
+            else:
+                print("[red]No se encontró ningún mail en la página.[/red]")
+
+            with open('escuelas.csv', 'a', encoding='utf-8') as f:
+                f.write(f'{nombre},{mail}\n')
+
+            # Volver a la página de resultados para el siguiente enlace
+            page.go_back()
 
     browser.close()
     p.stop()
