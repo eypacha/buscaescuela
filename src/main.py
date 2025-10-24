@@ -59,6 +59,7 @@ def main():
 
             # Volver a la página de resultados para el siguiente enlace
             page.go_back()
+            page.wait_for_selector('.listado a')
 
     browser.close()
     p.stop()
