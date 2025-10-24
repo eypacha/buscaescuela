@@ -48,7 +48,7 @@ def main():
         else:
             print("No se encontró ningún mail en la página.")
 
-        with open('escuelas.txt', 'a', encoding='utf-8') as f:
+        with open('escuelas.csv', 'a', encoding='utf-8') as f:
             f.write(f'{primer_h2},{primer_mail}\n')
 
     browser.close()

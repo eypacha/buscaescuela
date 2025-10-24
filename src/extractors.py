@@ -1,5 +1,3 @@
-# Funciones para extraer datos específicos de las páginas
-
 def extract_email(page_content):
     import re
     match = re.search(r'[\w\.-]+@[\w\.-]+', page_content)
