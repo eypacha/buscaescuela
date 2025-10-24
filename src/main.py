@@ -49,13 +49,18 @@ def main():
             page.goto(next_url, timeout=60000, wait_until="domcontentloaded")
 
             nombre = ''
+            page_content = page.content()
+            if "Server Error" in page_content:
+                print(f"[yellow]Server Error. Probando la siguiente...[/yellow]")
+                page.go_back(wait_until="domcontentloaded")
+                page.wait_for_selector('.col-sm-6.col-lg-6 > a')
+                continue
             try:
                 nombre = page.inner_text('h2')
                 print(f"[bold magenta]{'Nombre:':<{LABEL_WIDTH}}[/bold magenta] {nombre}")
             except Exception as e:
                 print(f"[red]No se encontró ningún h2:[/red] {e}")
 
-            page_content = page.content()
             mail = extract_email(page_content)
 
             print(f"[bold blue]{'Mail:':<{LABEL_WIDTH}}[/bold blue] {mail if mail else ''}")
