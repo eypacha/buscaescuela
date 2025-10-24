@@ -35,16 +35,20 @@ with sync_playwright() as p:
             next_url = primer_href
         page.goto(next_url, timeout=60000)
 
+        primer_h2 = ''
         try:
             primer_h2 = page.inner_text('h2')
             print(f"Nombre: {primer_h2}")
         except Exception as e:
             print(f"No se encontró ningún h2: {e}")
 
-
         page_content = page.content()
         match = re.search(r'[\w\.-]+@[\w\.-]+', page_content)
-        if match:
-            print(f"Mail: {match.group(0)}")
+        primer_mail = match.group(0) if match else ''
+        if primer_mail:
+            print(f"Mail: {primer_mail}")
         else:
             print("No se encontró ningún mail en la página.")
+
+        with open('escuelas.cvs', 'a', encoding='utf-8') as f:
+            f.write(f'{primer_h2},{primer_mail}\n')
