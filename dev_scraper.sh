@@ -1,6 +1,6 @@
 #!/bin/bash
-# Script de desarrollo: borra escuelas.txt y ejecuta el scraper
+# Script de desarrollo: borra escuelas.csv y ejecuta el scraper
 
-rm -f escuelas.txt
+rm -f escuelas.csv
 source .venv/bin/activate
 python -m src.main
