@@ -1,3 +1,4 @@
+import time
 
 #!/usr/bin/env python3
 from rich import print
@@ -13,6 +14,7 @@ START_ID = 1
 MAX_ID = 2000 
 
 def main():
+    start_time = time.time()
     p, browser = get_browser(headless=False)
     context = browser.new_context()
     def block_resources(route, request):
@@ -84,6 +86,8 @@ def main():
 
     browser.close()
     p.stop()
+    elapsed = time.time() - start_time
+    print(f"[bold green]Tiempo total de ejecución: {elapsed:.2f} segundos[/bold green]")
 
 if __name__ == "__main__":
     main()
