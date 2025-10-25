@@ -1,6 +1,5 @@
-import time
-
 #!/usr/bin/env python3
+import time
 from rich import print
 from src.browser import get_browser
 from src.extractors import extract_email
@@ -12,14 +11,14 @@ from bs4 import BeautifulSoup
 LABEL_WIDTH = 14
 BASE_URL = "https://buscatuescuela.buenosaires.gob.ar/establecimientos/show-establecimientos/"
 START_ID = 1
-MAX_ID = 3000 
+MAX_ID = 3000
 
 def get_email_from_website(page, url):
     try:
         page.goto(url, timeout=10000, wait_until="domcontentloaded")
         content = page.content()
-        mail = extract_email(content)
-        return mail
+        email_from_web = extract_email(content)
+        return email_from_web
     except Exception as e:
         print(f"[yellow]No se pudo scrapear mail de {url}: {e}[/yellow]")
         return ""
@@ -53,63 +52,69 @@ def main():
     if need_header:
         with open('escuelas.csv', 'a', encoding='utf-8', newline='') as f:
             writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(["id", "nombre", "email", "web", "mail_web"])
+            writer.writerow(["id", "name", "email", "management", "level", "web", "web_email"])
 
-    for eid in range(START_ID, MAX_ID + 1):
-        url = f"{BASE_URL}{eid}"
+    for school_id in range(START_ID, MAX_ID + 1):
+        url = f"{BASE_URL}{school_id}"
         print(f"[cyan]Consultando:[/cyan] {url}")
         try:
             page.goto(url, timeout=10000, wait_until="domcontentloaded")
         except Exception as e:
-            print(f"[red]Navigation error in ID {eid}: {e}. Skipping...[/red]")
+            print(f"[red]Navigation error in ID {school_id}: {e}. Skipping...[/red]")
             continue
         page_content = page.content()
         lower_content = page_content.lower()
         if "server error" in lower_content or "not found" in lower_content:
-            print(f"[yellow]Server Error o Not Found en ID {eid}, saltando...[/yellow]")
+            print(f"[yellow]Server Error o Not Found en ID {school_id}, saltando...[/yellow]")
             continue
-        nombre = ""
+        name = ""
         try:
-            nombre = page.inner_text('h2')
-            print(f"[magenta]Nombre:[/magenta] {nombre}")
+            name = page.inner_text('h2')
+            print(f"[magenta]Nombre:[/magenta] {name}")
         except Exception as e:
-            print(f"[red]No se encontró ningún h2 en ID {eid}:[/red] {e}")
-        mail = extract_email(page_content)
-        print(f"[blue]Mail:[/blue] {mail if mail else ''}")
+            print(f"[red]No se encontró ningún h2 en ID {school_id}:[/red] {e}")
+        email = extract_email(page_content)
+        print(f"[blue]Mail:[/blue] {email if email else ''}")
 
-        # Extraer dirección web solo si está dentro de un <span>
         soup = BeautifulSoup(page_content, "html.parser")
         web = ""
         for span in soup.find_all("span"):
-            # Buscar URLs que empiecen por http(s):// o www.
             urls = re.findall(r'(https?://[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?|www\.[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?)', span.get_text())
             if urls:
                 web = urls[0]
-                # Si empieza por www, agregar http:// para poder navegar
                 if web.startswith("www."):
                     web = "http://" + web
                 break
         print(f"[green]Web:[/green] {web}")
-        mail_web = ""
+        web_email = ""
         if web:
-            # Solo intentar si la web parece un dominio válido (no imagen, no favicon, etc)
             if not any(web.lower().endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg"]):
-                mail_web = get_email_from_website(page, web)
-                print(f"[yellow]Mail extraído de la web:[/yellow] {mail_web}")
-        nueva_fila = [eid, nombre, mail if mail else "", web, mail_web]
+                web_email = get_email_from_website(page, web)
+                print(f"[yellow]Mail extraído de la web:[/yellow] {web_email}")
+
+        management = ""
+        level = ""
+        secondary_data = soup.find_all("p", class_="secundario-dato")
+        if len(secondary_data) >= 3:
+            management = secondary_data[0].get_text(strip=True)
+            level = secondary_data[2].get_text(strip=True)
+        print(f"[cyan]Gestión:[/cyan] {management}")
+        print(f"[cyan]Nivel:[/cyan] {level}")
+
+        new_row = [school_id, name, email if email else "", management, level, web, web_email]
         try:
             with open('escuelas.csv', 'r', encoding='utf-8') as f:
-                existentes = list(csv.reader(f))
+                existing_rows = list(csv.reader(f))
         except FileNotFoundError:
-            existentes = []
-        email_lower = (mail or '').strip().lower()
+            existing_rows = []
+        email_lower = (email or '').strip().lower()
         if email_lower and email_lower not in seen_emails:
             with open('escuelas.csv', 'a', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(nueva_fila)
+                writer.writerow(new_row)
             seen_emails.add(email_lower)
-        if not mail:
-            print("[red]No se encontró ningún mail en la página.[/red]")
+            if not email:
+                print("[red]No se encontró ningún mail en la página.[/red]")
 
     browser.close()
     p.stop()
