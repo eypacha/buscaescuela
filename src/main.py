@@ -1,8 +1,11 @@
+
 #!/usr/bin/env python3
 from rich import print
 from src.browser import get_browser
 from src.extractors import extract_email
 from playwright.sync_api import TimeoutError
+import csv
+import re
 
 LABEL_WIDTH = 14
 BASE_URL = "https://buscatuescuela.buenosaires.gob.ar/establecimientos/show-establecimientos/"
@@ -41,8 +44,11 @@ def main():
             print(f"[red]No se encontró ningún h2 en ID {eid}:[/red] {e}")
         mail = extract_email(page_content)
         print(f"[blue]Mail:[/blue] {mail if mail else ''}")
-        import csv
-        nueva_fila = [eid, nombre, mail if mail else ""]
+
+        web_match = re.search(r'https?://[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?', page_content)
+        web = web_match.group(0) if web_match else ""
+        print(f"[green]Web:[/green] {web}")
+        nueva_fila = [eid, nombre, mail if mail else "", web]
         try:
             with open('escuelas.csv', 'r', encoding='utf-8') as f:
                 existentes = list(csv.reader(f))
