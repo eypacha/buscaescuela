@@ -60,8 +60,8 @@ def main():
         print(f"[cyan]Consultando:[/cyan] {url}")
         try:
             page.goto(url, timeout=10000, wait_until="domcontentloaded")
-        except TimeoutError as e:
-            print(f"[red]Timeout en ID {eid}, saltando...[/red]")
+        except Exception as e:
+            print(f"[red]Navigation error in ID {eid}: {e}. Skipping...[/red]")
             continue
         page_content = page.content()
         lower_content = page_content.lower()
