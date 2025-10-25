@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from rich import print
 from src.browser import get_browser
 from src.extractors import extract_email
@@ -40,15 +41,17 @@ def main():
             print(f"[red]No se encontró ningún h2 en ID {eid}:[/red] {e}")
         mail = extract_email(page_content)
         print(f"[blue]Mail:[/blue] {mail if mail else ''}")
-        nueva_linea = f'{eid},{nombre},{mail if mail else ""}\n'
+        import csv
+        nueva_fila = [eid, nombre, mail if mail else ""]
         try:
             with open('escuelas.csv', 'r', encoding='utf-8') as f:
-                existentes = f.readlines()
+                existentes = list(csv.reader(f))
         except FileNotFoundError:
             existentes = []
-        if nueva_linea not in existentes:
-            with open('escuelas.csv', 'a', encoding='utf-8') as f:
-                f.write(nueva_linea)
+        if nueva_fila not in existentes:
+            with open('escuelas.csv', 'a', encoding='utf-8', newline='') as f:
+                writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+                writer.writerow(nueva_fila)
         if not mail:
             print("[red]No se encontró ningún mail en la página.[/red]")
 
