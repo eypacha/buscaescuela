@@ -11,8 +11,8 @@ from bs4 import BeautifulSoup
 
 LABEL_WIDTH = 14
 BASE_URL = "https://buscatuescuela.buenosaires.gob.ar/establecimientos/show-establecimientos/"
-START_ID = 1 
-MAX_ID = 2000 
+START_ID = 1
+MAX_ID = 3000 
 
 def get_email_from_website(page, url):
     try:
