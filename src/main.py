@@ -81,9 +81,13 @@ def main():
         soup = BeautifulSoup(page_content, "html.parser")
         web = ""
         for span in soup.find_all("span"):
-            urls = re.findall(r'https?://[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?', span.get_text())
+            # Buscar URLs que empiecen por http(s):// o www.
+            urls = re.findall(r'(https?://[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?|www\.[\w\.-]+(?:\.[\w\.-]+)+(?:/[\w\-\./?%&=]*)?)', span.get_text())
             if urls:
                 web = urls[0]
+                # Si empieza por www, agregar http:// para poder navegar
+                if web.startswith("www."):
+                    web = "http://" + web
                 break
         print(f"[green]Web:[/green] {web}")
         mail_web = ""
