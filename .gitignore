@@ -20,3 +20,4 @@ __pycache__/
 # Otros
 *.log
 escuelas.csv
+escuelas_curated.csv
