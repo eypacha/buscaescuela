@@ -4,10 +4,11 @@ from src.extractors import extract_email
 from playwright.sync_api import TimeoutError
 
 LABEL_WIDTH = 14
+BASE_URL = "https://buscatuescuela.buenosaires.gob.ar/establecimientos/show-establecimientos/"
+START_ID = 1 
+MAX_ID = 2000 
 
 def main():
-    BASE_URL = "https://buscatuescuela.buenosaires.gob.ar/establecimientos/show-establecimientos/"
-    MAX_ID = 2000  # Cambia este valor según el rango de IDs que quieras probar
     p, browser = get_browser(headless=False)
     context = browser.new_context()
     def block_resources(route, request):
@@ -18,7 +19,7 @@ def main():
     context.route("**/*", block_resources)
     page = context.new_page()
 
-    for eid in range(1, MAX_ID + 1):
+    for eid in range(START_ID, MAX_ID + 1):
         url = f"{BASE_URL}{eid}"
         print(f"[cyan]Consultando:[/cyan] {url}")
         try:
