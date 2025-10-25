@@ -23,6 +23,25 @@ def main():
     context.route("**/*", block_resources)
     page = context.new_page()
 
+    seen_emails = set()
+    need_header = False
+    try:
+        with open('escuelas.csv', 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+            if not rows:
+                need_header = True
+            for row in rows:
+                if len(row) >= 3:
+                    seen_emails.add(row[2].strip().lower())
+    except FileNotFoundError:
+        need_header = True
+
+    if need_header:
+        with open('escuelas.csv', 'a', encoding='utf-8', newline='') as f:
+            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["id", "nombre", "email", "web"])
+
     for eid in range(START_ID, MAX_ID + 1):
         url = f"{BASE_URL}{eid}"
         print(f"[cyan]Consultando:[/cyan] {url}")
@@ -54,10 +73,12 @@ def main():
                 existentes = list(csv.reader(f))
         except FileNotFoundError:
             existentes = []
-        if nueva_fila not in existentes:
+        email_lower = (mail or '').strip().lower()
+        if email_lower and email_lower not in seen_emails:
             with open('escuelas.csv', 'a', encoding='utf-8', newline='') as f:
                 writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL)
                 writer.writerow(nueva_fila)
+            seen_emails.add(email_lower)
         if not mail:
             print("[red]No se encontró ningún mail en la página.[/red]")
 
